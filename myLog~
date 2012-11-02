@@ -3,8 +3,41 @@ git setup
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global user.name "Shu Yang"
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config user.name
 Shu Yang
+
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global user.email "syang11@cs.ubc.ca"
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config user.email
 syang11@cs.ubc.ca
+
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git init
 Initialized empty Git repository in /ubc/cs/research/irmtraud/people/syang11/workspace/521_mat/.git/ 
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global credential.helper cache		
+# Set git to use the credential memory cache
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global credential.helper 'cache --timeout=3600'		
+# Set the cache to timeout after 1 hour (setting is in seconds)
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git add *
+#removes and stages all files
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git commit -m "remove all files to git: first commit"
+[master (root-commit) 8dd03cf] remove all files to git: first commit
+ 11 files changed, 1248 insertions(+), 0 deletions(-)
+ create mode 100644 .cproject
+ create mode 100644 .directory
+ create mode 100644 .project
+ create mode 100644 hw2Mat.c                                                                                                         
+ create mode 100644 main.c
+ create mode 100644 mat.c
+ create mode 100644 mat1.c
+ create mode 100644 mat1_en.c
+ create mode 100644 mpi_mm.c
+ create mode 100644 myLog
+ create mode 100644 myLog~
+#make the first commit
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git log
+commit 8dd03cfb814114f3fe702541d69823767b69679d
+Author: Shu Yang <syang11@cs.ubc.ca>
+Date:   Fri Nov 2 16:05:22 2012 -0700
+
+    remove all files to git: first commit
+
