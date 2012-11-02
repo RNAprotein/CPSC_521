@@ -1,0 +1,15 @@
+git setup
+-------------
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global user.name "Shu Yang"
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config user.name
+Shu Yang
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global user.email "syang11@cs.ubc.ca"
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config user.email
+syang11@cs.ubc.ca
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git init
+Initialized empty Git repository in /ubc/cs/research/irmtraud/people/syang11/workspace/521_mat/.git/ 
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global credential.helper cache		# Set git to use the credential memory cache
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git config --global credential.helper 'cache --timeout=3600'		# Set the cache to timeout after 1 hour (setting is in seconds)
