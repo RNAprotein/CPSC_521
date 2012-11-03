@@ -32,3 +32,11 @@ To https://github.com/syang11/CPSC_521.git
  * [new branch]      master -> master
 
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git commit -am 'update github repo'
+
+
+add tag to master branch to keep version
+------------------------------------
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git checkout master
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git tag v1.0
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git push --tags cs521 master
+
