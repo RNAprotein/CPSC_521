@@ -31,4 +31,4 @@ Total 17 (delta 5), reused 0 (delta 0)
 To https://github.com/syang11/CPSC_521.git
  * [new branch]      master -> master
 
-
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git commit -am 'update github repo'
