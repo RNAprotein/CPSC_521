@@ -41,3 +41,53 @@ Date:   Fri Nov 2 16:05:22 2012 -0700
 
     remove all files to git: first commit
 
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git branch
+* master
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git branch draft
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git branch
+  draft
+* master
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git rm mat1_en.c
+rm 'mat1_en.c'
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       deleted:    mat1_en.c
+#
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       modified:   myLog
+#       modified:   myLog~
+#
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git rm mat.c
+rm 'mat.c'
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git rm mpi_mm.c
+rm 'mpi_mm.c'
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git rm main.c
+rm 'main.c'
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git mat1.c
+git: 'mat1.c' is not a git command. See 'git --help'.
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git rm mat1.c
+rm 'mat1.c'
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git commit -am 'upload master branch to GitHub'
+[master 84d6724] upload master branch to GitHub
+ 7 files changed, 63 insertions(+), 870 deletions(-)
+ delete mode 100644 main.c
+ delete mode 100644 mat.c
+ delete mode 100644 mat1.c
+ delete mode 100644 mat1_en.c
+ delete mode 100644 mpi_mm.c
+
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git remote add cs521 https://github.com/syang11/CPSC_521.git 
+syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git push cs521 master
+Counting objects: 17, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (17/17), done.
+Writing objects: 100% (17/17), 10.27 KiB, done.
+Total 17 (delta 5), reused 0 (delta 0)
+To https://github.com/syang11/CPSC_521.git
+ * [new branch]      master -> master
