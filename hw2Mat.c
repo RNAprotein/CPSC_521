@@ -38,7 +38,7 @@ int main(int argc,char *argv[]) {
 	
 	//---------
 	//exit if the number of processes is not satisfied
-	if(size<2)
+	if(size<D)
 	{			
 		printf("Need at least 2 processes!\n");
 		MPI_Abort(MPI_COMM_WORLD,99);
@@ -134,7 +134,7 @@ int ring(int round, int *raw)
 	//find the neighbors
 	int previous=rank-1;
 	int next=rank+1;
-	if(next==size){
+	if(next==D){	//next==size
 		next=0;
 	}
 
