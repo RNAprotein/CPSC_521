@@ -1,9 +1,9 @@
 /*
-CPSC 521 assignment 2: Nbody with granularityularity.
+CPSC 521 assignment 2: Nbody with granularity.
 
-The original version is simple N-body script without granularityularity.
+The original version is simple N-body script without granularity.
 
-The later version, according to assignment 2, has granularityularity bodies
+The later version, according to assignment 2, has granularity bodies
 
   (c) Shu Yang 2012
   Email: syang11@cs.ubc.ca
