@@ -1,32 +1,36 @@
+/*
+CPSC 521 assignment 2: matrix multiplication.
+
+The original version is based on N-body script: do functional decomposition (pipeline: Initialization, simulation and termination)
+
+The later version, according to Prof. Wagner's suggestion on Oct. 10th class: do node decomposition (root, other) which is better when adding new ring nodes
+
+  (c) Shu Yang 2012
+  Email: syang11@cs.ubc.ca
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <time.h>
 
 #include "mpi.h"
 
+const int D=4;	//dimension; i.e. take 4*4 matrix as an example
 
-//-------------
-#undef SEEK_SET
-#undef SEEK_END
-#undef SEEK_CUR
-//-------------
-
-
-
-int head();
-int ring();
+int head(int round, int *M, char *fileName);
+int ring(int round, int *M);
 
 //main function
-int main(void) {
+//argv: (rounds, filename)
+int main(int argc,char *argv[]) {
 	
     int test;
 	int rank; //
 	int size; //
-	MPI_Status status;
+	//MPI_Status status;
 	
 	//initialize MPI
-	MPI_Init(NULL,NULL);
+	MPI_Init(&argc,&argv);
 	//get the current process's rank, to rank
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	//get the total number of processes, to size
@@ -41,25 +45,29 @@ int main(void) {
 	}
 	//---------
 	
-	if(rank==0)
-	{
-		//set the head process, which is the one with id==0
-		head();
-	}
-	else
-	{
-		//set the other ring processes, which are those with id!=0
-		ring();
+	int rounds = atoi(argv[1]);
+	char *fileName=argv[2];
+
+	int M[D*D];	//resultant matrix for each round
+	int raw[D*D];	//raw matrix from the file
+	for (int i = 0; i < rounds; i++) {
+		if (rank == 0) {
+			//set the head process, which is the one with id==0
+			head(i, M, fileName); //head(fileName);
+		} else {
+			//set the other ring processes, which are those with id!=0
+			ring(i, raw);
+		}
 	}
 	
 	//finalize MPI
 	MPI_Finalize();
-	return EXIT_SUCCESS;
+	return 1;
 }
 
 
 //for the head node
-int head()
+int head(int round, int *M, char *fileName)
 {
 	int rank; //
 	int size; //
@@ -70,95 +78,117 @@ int head()
 	//get the number of total processes
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 
-	const int M=4;
-    const int K=3;
-    const int N=2;
 
-	//result matrix C
-	int C[M*N];
-	int V[M];
-	//initialize every cell in C to be 0
-	for(int i=0;i<M*N;i++)
-	{
-		C[i]=0;
-	}
-	//for each column of C (N columns)
-	for(int i=0;i<N;i++)
-	{		
-		//get the data from the other ring processes
-		for(int j=1;j<size;j++)
-		{
-			MPI_Recv(V, M, MPI_INT, j, i, MPI_COMM_WORLD, &status);	
-			//integrate the data from all the other ring processes into a complete vector
-			for(int ij=0;ij<M;ij++)
-			{
-				C[ij*N+i]=C[ij*N+i]+V[ij];
-			}
-		}		
-	}
-	//print the results
-	for(int i=0;i<M;i++)
-	{
-		for(int j=0;j<N;j++)
-		{
-			cout<<C[i*N+j]<<"\t";
+	//raw matrix from the file
+	int raw[D*D];
+    //int C[D*D];
+    int V[D];
+    int *p=M;
+
+    //initialize the matrix raw and C
+    if (round == 0) {
+		FILE *fp;
+		fp = fopen(fileName, "r");
+		for (int i = 0; i < D * D; i++) {
+			fscanf(fp, "%d", p);
+			raw[i]=*(p);
+			p++;
 		}
-		cout<<endl;
-	}	
+	}
+
+	//send matrix to the first ring node
+	int tag_code=round;//int tag_code=1;
+	MPI_Send(M, D * D, MPI_INT, 1, tag_code, MPI_COMM_WORLD);
+
+	//receive matrix from the last ring node
+	MPI_Recv(M, D * D, MPI_INT, size-1, tag_code, MPI_COMM_WORLD, &status);
+
+	//print the results
+	printf("\n-------For the %d round:--------\n", round);
+	for(int i=0;i<D;i++)
+	{
+		for(int j=0;j<D;j++)
+		{
+			printf ("%d\t",M[i*D+j]);
+		}
+		printf ("\n");
+	}
 	return 0;
 }
 
 //the other ring processes
-int ring()
+int ring(int round, int *raw)
 {
 	int rank; //
 	int size; //
 	MPI_Status status;
-	
+	int M[D*D];	//resultant matrix for each round
+	int T[D*D];	//temporary resultant matrix for each round
+	int tag_code=round;
+
 	//get the current process id
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	//get the number of total processes
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	
-	int const M(4),K(3),N(2);
-	vector<int> indexes;	
+	//find the neighbors
+	int previous=rank-1;
+	int next=rank+1;
+	if(next==size){
+		next=0;
+	}
 
-	int V[M];
-	
-	int A[M*K]={1,2,3,4,5,6,7,8,9,8,7,6};
-	int B[K*N]={5,4,3,2,1,0};
-	 
-	//compute which rows of matrix A should be distributed to the current process, save the row data to indexes
-	//eg. 2 ring processes, A has 4 rows, then the process with id==1 get row 0 and 2
-	for(int i=rank-1;i<M;i+=size-1)
-	{
-		indexes.push_back(i);
-	} 
-	//for each column of matrix B (N columns)
-	for(int i=0;i<N;i++)
-	{
-		//initialize every cell in the vector V to be 0
-		for(int j=0;j<M;j++)
-		{
-			V[j]=0;
-		}
-		if(indexes.size()>0)
-		{						
-			for(int j=0;j<indexes.size();j++)
-			{
-				for(int ij=0;ij<K;ij++)
-				{
-					V[indexes[j]]+=A[indexes[j]*K+ij]*B[ij*N+i];
-				}
+	//raw matrix from the file
+	if (round==0){
+		if(rank==1){
+			MPI_Recv(raw, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+			for (int i = 0; i < D * D; i++) {
+				M[i]=*(raw+i);
 			}
-			MPI_Send(V, M, MPI_INT, 0,i,MPI_COMM_WORLD);				
+		}else{
+			MPI_Recv(raw, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
 		}
-		else
+
+		int row=rank-1;
+		for(int i=0;i<D;i++)
 		{
-			//send V with all 0 elements
-			MPI_Send(V, M, MPI_INT, 0,i,MPI_COMM_WORLD);	
+			M[row*D+i]=0;
+			for(int j=0;j<D;j++)
+			{
+				M[row*D+i]+=(*(raw+row*D+j)) * (*(raw+row*j+i));
+			}
 		}
-	}	
+
+		if(next !=0){
+			MPI_Send(raw, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+		}
+		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+	}else{
+		if (rank == 1) {
+			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD,	&status);
+			for (int i = 0; i < D * D; i++) {
+				T[i] = M[i];
+			}
+		}else{
+			MPI_Recv(T, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+		}
+
+		int row = rank - 1;
+		for (int i = 0; i < D; i++) {
+			M[row * D + i] = 0;
+			for (int j = 0; j < D; j++) {
+				M[row * D + i] += (T[row * D + j]) * (*(raw+row*j+i));
+			}
+		}
+
+		if(next !=0){
+			MPI_Send(T, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+		}
+		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+	}
+
 	return 0;
 }
 
