@@ -15,11 +15,11 @@ syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git bra
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git commit -am 'upload master branch to GitHub'
 [master 84d6724] upload master branch to GitHub
  7 files changed, 63 insertions(+), 870 deletions(-)
- delete mode 100644 main.c
- delete mode 100644 mat.c
+ delete mode 100644 Nbody_gran.c
+ delete mode 100644 Nbody.c
  delete mode 100644 mat1.c
  delete mode 100644 mat1_en.c
- delete mode 100644 mpi_mm.c
+ delete mode 100644 mpi_mat.c
 
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git remote add cs521 https://github.com/syang11/CPSC_521.git 
 syang11@fire:/ubc/cs/research/irmtraud/people/syang11/workspace/521_mat> git push cs521 master
