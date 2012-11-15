@@ -5,6 +5,12 @@ The original version is based on N-body script: do functional decomposition (pip
 
 The later version, according to Prof. Wagner's suggestion on Oct. 10th class: do node decomposition (root, other) which is better when adding new ring nodes
 
+To build the program:
+	mpicc -o hw2Mat hw2Mat.c
+
+To run the program:
+	mpiexec -n 5 ./hw2Mat 3 matrix.txt
+
   (c) Shu Yang 2012
   Email: syang11@cs.ubc.ca
 
@@ -23,7 +29,6 @@ int ring(int round, int *M);
 //main function
 //argv: (rounds, filename)
 int main(int argc,char *argv[]) {
-	
     int test;
 	int rank; //
 	int size; //
@@ -37,11 +42,18 @@ int main(int argc,char *argv[]) {
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	
 	//---------
+	//exit if the number of arguments is not satisfied
+	if (argc != 3) {
+		printf("Please provide two arguments.\n %s rounds filename\n",argv[0]);
+		MPI_Finalize();
+		return 1;
+	}
 	//exit if the number of processes is not satisfied
-	if(size<D)
+	if(size!=D+1)
 	{			
-		printf("Need at least 2 processes!\n");
-		MPI_Abort(MPI_COMM_WORLD,99);
+		printf("Need %d processes!\n",D+1);
+		MPI_Finalize();
+		return 1;
 	}
 	//---------
 	
@@ -138,7 +150,7 @@ int ring(int round, int *raw)
 	//find the neighbors
 	int previous=rank-1;
 	int next=rank+1;
-	if(next==D){	//next==size
+	if(next==D+1){	//next==size
 		next=0;
 	}
 
@@ -174,7 +186,8 @@ int ring(int round, int *raw)
 	}else{
 		if (rank == 1) {
 			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD,	&status);
-			for (int i = 0; i < D * D; i++) {
+			int i;
+			for (i = 0; i < D * D; i++) {
 				T[i] = M[i];
 			}
 		}else{
