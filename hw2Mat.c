@@ -50,7 +50,8 @@ int main(int argc,char *argv[]) {
 
 	int M[D*D];	//resultant matrix for each round
 	int raw[D*D];	//raw matrix from the file
-	for (int i = 0; i < rounds; i++) {
+	int i;
+	for (i = 0; i < rounds; i++) {
 		if (rank == 0) {
 			//set the head process, which is the one with id==0
 			head(i, M, fileName); //head(fileName);
@@ -89,7 +90,8 @@ int head(int round, int *M, char *fileName)
     if (round == 0) {
 		FILE *fp;
 		fp = fopen(fileName, "r");
-		for (int i = 0; i < D * D; i++) {
+		int i;
+		for (i = 0; i < D * D; i++) {
 			fscanf(fp, "%d", p);
 			raw[i]=*(p);
 			p++;
@@ -105,9 +107,11 @@ int head(int round, int *M, char *fileName)
 
 	//print the results
 	printf("\n-------For the %d round:--------\n", round);
-	for(int i=0;i<D;i++)
+	int i;
+	for(i=0;i<D;i++)
 	{
-		for(int j=0;j<D;j++)
+		int j;
+		for(j=0;j<D;j++)
 		{
 			printf ("%d\t",M[i*D+j]);
 		}
@@ -142,7 +146,8 @@ int ring(int round, int *raw)
 	if (round==0){
 		if(rank==1){
 			MPI_Recv(raw, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
-			for (int i = 0; i < D * D; i++) {
+			int i;
+			for (i = 0; i < D * D; i++) {
 				M[i]=*(raw+i);
 			}
 		}else{
@@ -151,19 +156,21 @@ int ring(int round, int *raw)
 		}
 
 		int row=rank-1;
-		for(int i=0;i<D;i++)
+		int i;
+		for(i=0;i<D;i++)
 		{
 			M[row*D+i]=0;
-			for(int j=0;j<D;j++)
+			int j;
+			for(j=0;j<D;j++)
 			{
 				M[row*D+i]+=(*(raw+row*D+j)) * (*(raw+row*j+i));
 			}
 		}
 
 		if(next !=0){
-			MPI_Send(raw, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Send(raw, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
 		}
-		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
 	}else{
 		if (rank == 1) {
 			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD,	&status);
@@ -176,17 +183,19 @@ int ring(int round, int *raw)
 		}
 
 		int row = rank - 1;
-		for (int i = 0; i < D; i++) {
+		int i;
+		for (i = 0; i < D; i++) {
 			M[row * D + i] = 0;
-			for (int j = 0; j < D; j++) {
+			int j;
+			for (j = 0; j < D; j++) {
 				M[row * D + i] += (T[row * D + j]) * (*(raw+row*j+i));
 			}
 		}
 
 		if(next !=0){
-			MPI_Send(T, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Send(T, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
 		}
-		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD, &status);
+		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
 	}
 
 	return 0;
