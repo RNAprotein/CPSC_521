@@ -1,6 +1,11 @@
 author: Shu Yang
 email: syang11@cs.ubc.ca
 
+hw2Mat.c
+As a validation of the program, I have compared the results with online matrix multiplication tool: 
+http://www.bluebit.gr/matrix-calculator/multiply.aspx
+
+
 move the previous works from google site to github: https://github.com/syang11/CPSC_521
 
 git setup 
