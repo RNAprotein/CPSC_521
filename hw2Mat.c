@@ -7,9 +7,16 @@ The later version, according to Prof. Wagner's suggestion on Oct. 10th class: do
 
 To build the program:
 	mpicc -o hw2Mat hw2Mat.c
+	or (create a log file)
+	mpicc -o hw2Mat hw2Mat.c -mpe=mpilog
 
 To run the program:
 	mpiexec -n 5 ./hw2Mat 3 matrix.txt
+	or (create a log file)
+	mpiexec -n 5 ./hw2Mat 30 matrix.txt (31 rounds at the maximum due to the datatype (long int) limitation)
+	clog2TOslog2 hw2Mat.clog2
+	jumpshot hw2Mat.slog2
+
 
   (c) Shu Yang 2012
   Email: syang11@cs.ubc.ca
@@ -23,8 +30,8 @@ To run the program:
 
 const int D=4;	//dimension; i.e. take 4*4 matrix as an example
 
-int head(int round, int *M, char *fileName);
-int ring(int round, int *M);
+int head(int round, long *M, char *fileName);
+int ring(int round, long *M);
 
 //main function
 //argv: (rounds, filename)
@@ -60,8 +67,8 @@ int main(int argc,char *argv[]) {
 	int rounds = atoi(argv[1]);
 	char *fileName=argv[2];
 
-	int M[D*D];	//resultant matrix for each round
-	int raw[D*D];	//raw matrix from the file
+	long M[D*D];	//resultant matrix for each round
+	long raw[D*D];	//raw matrix from the file
 	int i;
 	for (i = 0; i < rounds; i++) {
 		if (rank == 0) {
@@ -80,7 +87,7 @@ int main(int argc,char *argv[]) {
 
 
 //for the head node
-int head(int round, int *M, char *fileName)
+int head(int round, long *M, char *fileName)
 {
 	int rank; //
 	int size; //
@@ -93,10 +100,10 @@ int head(int round, int *M, char *fileName)
 
 
 	//raw matrix from the file
-	int raw[D*D];
+	long raw[D*D];
     //int C[D*D];
-    int V[D];
-    int *p=M;
+    long V[D];
+    long *p=M;
 
     //initialize the matrix raw and C
     if (round == 0) {
@@ -104,7 +111,7 @@ int head(int round, int *M, char *fileName)
 		fp = fopen(fileName, "r");
 		int i;
 		for (i = 0; i < D * D; i++) {
-			fscanf(fp, "%d", p);
+			fscanf(fp, "%lu", p);
 			raw[i]=*(p);
 			p++;
 		}
@@ -112,10 +119,10 @@ int head(int round, int *M, char *fileName)
 
 	//send matrix to the first ring node
 	int tag_code=round;//int tag_code=1;
-	MPI_Send(M, D * D, MPI_INT, 1, tag_code, MPI_COMM_WORLD);
+	MPI_Send(M, D * D, MPI_LONG, 1, tag_code, MPI_COMM_WORLD);
 
 	//receive matrix from the last ring node
-	MPI_Recv(M, D * D, MPI_INT, size-1, tag_code, MPI_COMM_WORLD, &status);
+	MPI_Recv(M, D * D, MPI_LONG, size-1, tag_code, MPI_COMM_WORLD, &status);
 
 	//print the results
 	printf("\n-------For the %d round:--------\n", round);
@@ -125,7 +132,7 @@ int head(int round, int *M, char *fileName)
 		int j;
 		for(j=0;j<D;j++)
 		{
-			printf ("%d\t",M[i*D+j]);
+			printf ("%lu\t",M[i*D+j]);
 		}
 		printf ("\n");
 	}
@@ -133,13 +140,13 @@ int head(int round, int *M, char *fileName)
 }
 
 //the other ring processes
-int ring(int round, int *raw)
+int ring(int round, long *raw)
 {
 	int rank; //
 	int size; //
 	MPI_Status status;
-	int M[D*D];	//resultant matrix for each round
-	int T[D*D];	//temporary resultant matrix for each round
+	long M[D*D];	//resultant matrix for each round
+	long T[D*D];	//temporary resultant matrix for each round
 	int tag_code=round;
 
 	//get the current process id
@@ -157,14 +164,14 @@ int ring(int round, int *raw)
 	//raw matrix from the file
 	if (round==0){
 		if(rank==1){
-			MPI_Recv(raw, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(raw, D * D, MPI_LONG, previous, tag_code, MPI_COMM_WORLD, &status);
 			int i;
 			for (i = 0; i < D * D; i++) {
 				M[i]=*(raw+i);
 			}
 		}else{
-			MPI_Recv(raw, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
-			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(raw, D * D, MPI_LONG, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(M, D * D, MPI_LONG, previous, tag_code, MPI_COMM_WORLD, &status);
 		}
 
 		int row=rank-1;
@@ -180,19 +187,19 @@ int ring(int round, int *raw)
 		}
 
 		if(next !=0){
-			MPI_Send(raw, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
+			MPI_Send(raw, D * D, MPI_LONG, next, tag_code, MPI_COMM_WORLD);
 		}
-		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
+		MPI_Send(M, D * D, MPI_LONG, next, tag_code, MPI_COMM_WORLD);
 	}else{
 		if (rank == 1) {
-			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD,	&status);
+			MPI_Recv(M, D * D, MPI_LONG, previous, tag_code, MPI_COMM_WORLD,	&status);
 			int i;
 			for (i = 0; i < D * D; i++) {
 				T[i] = M[i];
 			}
 		}else{
-			MPI_Recv(T, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
-			MPI_Recv(M, D * D, MPI_INT, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(T, D * D, MPI_LONG, previous, tag_code, MPI_COMM_WORLD, &status);
+			MPI_Recv(M, D * D, MPI_LONG, previous, tag_code, MPI_COMM_WORLD, &status);
 		}
 
 		int row = rank - 1;
@@ -206,9 +213,9 @@ int ring(int round, int *raw)
 		}
 
 		if(next !=0){
-			MPI_Send(T, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
+			MPI_Send(T, D * D, MPI_LONG, next, tag_code, MPI_COMM_WORLD);
 		}
-		MPI_Send(M, D * D, MPI_INT, next, tag_code, MPI_COMM_WORLD);
+		MPI_Send(M, D * D, MPI_LONG, next, tag_code, MPI_COMM_WORLD);
 	}
 
 	return 0;

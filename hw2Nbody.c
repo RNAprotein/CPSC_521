@@ -17,6 +17,7 @@ The later version, according to assignment 2, has granularity bodies
 #include <stdlib.h>
 
 const float deltaT = 1.0;	//delta t constant
+const double G= 0.0000000000667384;		//gravitational constant
 
 //main function
 //argv: (rounds, granularity, filename)
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]) {
 					//if r2 is 0, there is no force
 					r2 = pow((data[k * 3] - data[j * 3]), 2) + pow((data[k * 3 + 1] - data[j * 3 + 1]), 2);
 					if (r2 != 0){
-						fc = (6.67384 * pow(10, -11)) * data[k * 3 + 2] * mass / r2;
+						fc = (G) * data[k * 3 + 2] * mass / r2;
 					}else{
 						fc = 0;
 					}
