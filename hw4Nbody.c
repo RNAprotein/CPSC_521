@@ -28,8 +28,9 @@ const float deltaT = 1.0;	//delta t constant
 const double G= 0.0067;		//gravitational constant * 1000000000 for visualization purpose
 
 
-const int WIDTH = 500; //window width
-const int HEIGHT = 500; //window height
+const int WIDTH = 1000; //window width
+const int HEIGHT = 1000; //window height
+const int POSITION_DIMENSION = 3;	//position info (x, y, z)
 
 MPE_XGraph window;
 
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
 	int rounds = atoi(argv[1]);
 	char* filename= argv[2];
 
-	float data[size * 3];
+	float data[size * POSITION_DIMENSION];
 
 
 	int i = 0;
@@ -80,19 +81,19 @@ int main(int argc, char *argv[]) {
 		FILE *fp;
 		fp = fopen(filename, "r");
 
-		for (i = 0; i < size * 3; i++) {
+		for (i = 0; i < size * POSITION_DIMENSION; i++) {
 			fscanf(fp, "%f", data+i);
 		}
 
-		MPI_Send(data + 3 , (size - rank-1) * 3, MPI_FLOAT, next, 0,
+		MPI_Send(data + POSITION_DIMENSION , (size - rank-1) * POSITION_DIMENSION, MPI_FLOAT, next, 0,
 				MPI_COMM_WORLD);
 	} else if (rank == size - 1) {
-		MPI_Recv(data, (size - rank) * 3, MPI_FLOAT, previous, 0, MPI_COMM_WORLD,
+		MPI_Recv(data, (size - rank) * POSITION_DIMENSION, MPI_FLOAT, previous, 0, MPI_COMM_WORLD,
 				&status);
 	} else {
-		MPI_Recv(data, (size - rank) * 3, MPI_FLOAT, previous, 0,
+		MPI_Recv(data, (size - rank) * POSITION_DIMENSION, MPI_FLOAT, previous, 0,
 				MPI_COMM_WORLD, &status);
-		MPI_Send(data + 3, (size - rank - 1) * 3, MPI_FLOAT, next,
+		MPI_Send(data + POSITION_DIMENSION, (size - rank - 1) * POSITION_DIMENSION, MPI_FLOAT, next,
 				0, MPI_COMM_WORLD);
 	}
 
@@ -104,9 +105,9 @@ int main(int argc, char *argv[]) {
 		float *p = data;
 
 		for (j = 0; j < size; j++) {
-			MPI_Send(p, 3, MPI_FLOAT, next, tag_code, MPI_COMM_WORLD);
-			p += 3;
-			MPI_Recv(p, 3, MPI_FLOAT, previous, tag_code, MPI_COMM_WORLD,
+			MPI_Send(p, POSITION_DIMENSION, MPI_FLOAT, next, tag_code, MPI_COMM_WORLD);
+			p += POSITION_DIMENSION;
+			MPI_Recv(p, POSITION_DIMENSION, MPI_FLOAT, previous, tag_code, MPI_COMM_WORLD,
 					&status);
 		}
 
@@ -116,20 +117,20 @@ int main(int argc, char *argv[]) {
 		float x_new = 0, y_new = 0, r2, fc;
 		for (k = 0; k < size; k++) {
 			//if r2 is 0, there is no force
-			r2 = pow((data[k * 3] - data[0]), 2) + pow((data[k * 3 + 1] - data[1]), 2);
+			r2 = pow((data[k * POSITION_DIMENSION] - data[0]), 2) + pow((data[k * POSITION_DIMENSION + 1] - data[1]), 2);
 			if (r2 != 0){
-				fc = G * data[k * 3 + 2] * mass / r2;
+				fc = G * data[k * POSITION_DIMENSION + 2] * mass / r2;
 			}else{
 				fc = 0;
 			}
 
 			//if the change for x (or y) is 0, there is no force
-			if ((data[k * 3] - data[0]) != 0 || r2 != 0){
-				x_new += fc * (data[k * 3] - data[0]) / sqrt(r2);
+			if ((data[k * POSITION_DIMENSION] - data[0]) != 0 || r2 != 0){
+				x_new += fc * (data[k * POSITION_DIMENSION] - data[0]) / sqrt(r2);
 			}
 
-			if ((data[k * 3 + 1] - data[1]) != 0 || r2 != 0){
-				y_new += fc * (data[k * 3 + 1] - data[1]) / sqrt(r2);
+			if ((data[k * POSITION_DIMENSION + 1] - data[1]) != 0 || r2 != 0){
+				y_new += fc * (data[k * POSITION_DIMENSION + 1] - data[1]) / sqrt(r2);
 			}
 		}
 		x = x_new;
@@ -139,22 +140,21 @@ int main(int argc, char *argv[]) {
 		data[0] += vx * deltaT;
 		data[1] += vy * deltaT;
 
-	    //MPE_Draw_circle(window, data[0],data[1],3 ,rank+1);
+
 		char *string="sy";
-		MPE_Draw_string(window, data[0],data[1] ,rank+1,string);
+		MPE_Draw_string(window, data[1],data[0] ,rank+1,string);
 	    MPE_Update(window);
 	    usleep(100000); //sleep 100ms time
 
 	    if(j < rounds - 1) {
-	    	MPE_Draw_string(window, data[0],data[1] ,MPE_WHITE,string);
-	      //MPE_Draw_circle(window, data[0],data[1],3,MPE_WHITE);
+	    	MPE_Draw_string(window, data[1],data[0] ,MPE_WHITE,string);
 	    }
 	}
 
 	//TERMINATION
 	for (i = 0; i < size - 1; i++) {
-		MPI_Send(data+i * 3, 3, MPI_FLOAT, previous, 1, MPI_COMM_WORLD);
-		MPI_Recv(data+(i+1) * 3, 3, MPI_FLOAT, next, 1, MPI_COMM_WORLD,
+		MPI_Send(data+i * POSITION_DIMENSION, POSITION_DIMENSION, MPI_FLOAT, previous, 1, MPI_COMM_WORLD);
+		MPI_Recv(data+(i+1) * POSITION_DIMENSION, POSITION_DIMENSION, MPI_FLOAT, next, 1, MPI_COMM_WORLD,
 				&status);
 	}
 
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
 	//head node prints the results
 	if (rank == 0) {
 		for (i = 0; i < size; i++) {
-			printf("%f, %f, %f\n", data[i*3], data[i*3+1], data[i*3+2]);
+			printf("%f, %f, %f\n", data[i*POSITION_DIMENSION], data[i*POSITION_DIMENSION+1], data[i*POSITION_DIMENSION+2]);
 		}
 	}
 
@@ -170,10 +170,7 @@ int main(int argc, char *argv[]) {
 	//here I use touch-like design: exit once the user drag a square (or whatever)
 	int startx, starty, endx, endy, button, dragVisual=2;		//2: line, 1: rect, 3: cycle
 	if(rank == 0) {
-	    //while(endx==0){
-	    	//MPE_Get_mouse_press(window,&endx, &endy,&button);
-	    	//MPE_Get_drag_region(window, button, dragVisual, &startx, &starty, &endx, &endy);
-	    //}
+	    MPE_Get_drag_region(window, button, dragVisual, &startx, &starty, &endx, &endy);
 	}
 	MPE_Close_graphics(&window);
 	MPI_FINALIZE();
