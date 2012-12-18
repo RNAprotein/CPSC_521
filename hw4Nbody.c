@@ -140,14 +140,17 @@ int main(int argc, char *argv[]) {
 		data[0] += vx * deltaT;
 		data[1] += vy * deltaT;
 
-
+		/*for (i= 0; i < size; i++)
+		{
+		  MPE_Draw_circle (window, data[3*i],data[3*i+1] ,4, MPE_BLUE);
+		}*/
 		char *string="sy";
-		MPE_Draw_string(window, data[1],data[0] ,rank+1,string);
+		MPE_Draw_string(window, data[0],data[1] ,rank+1,string);
 	    MPE_Update(window);
 	    usleep(100000); //sleep 100ms time
 
-	    if(j < rounds - 1) {
-	    	MPE_Draw_string(window, data[1],data[0] ,MPE_WHITE,string);
+	    if(i < rounds - 1) {
+	    	MPE_Draw_string(window, data[0],data[1] ,MPE_WHITE,string);
 	    }
 	}
 
@@ -176,4 +179,3 @@ int main(int argc, char *argv[]) {
 	MPI_FINALIZE();
 
 }
-
