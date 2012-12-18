@@ -1,0 +1,114 @@
+Compile on the head node:
+[syang@cyclops Nbody]$ mpicc hw2Nbody.c -o hw2Nbody -lm
+
+Run on the assigned node:
+[syang@cyclops ~]$ ique1
+qsub: waiting for job 8797.cyclops to start
+qsub: job 8797.cyclops ready
+
+----------------------------------------
+Begin PBS Prologue Thu Dec 13 01:27:17 PST 2012 1355390837
+Job ID:         8797.cyclops
+Username:       syang
+Group:          students
+Rsrcs:          neednodes=1:ppn=8,nodes=1:ppn=8,pmem=1500000kb,pvmem=1500000kb,walltime=03:00:00
+Queue:          dque
+Nodes:          node26
+
+Note: Global temp storage set at /scratch/tmp/8797.cyclops ($PBS_TMPDIR)
+      Fast local temp storage set at /tmp/8797.cyclops     ($TMPDIR)
+
+End PBS Prologue Thu Dec 13 01:27:17 PST 2012 1355390837
+----------------------------------------
+
+[syang@node26 ~]$ cat $PBS_NODEFILE
+node26
+node26
+node26
+node26
+node26
+node26
+node26
+node26
+
+#ique1 8cores, bodies=1024
+[syang@node26 Nbody]$ more syang_NODEFILE
+node26:8
+node26:8
+node26:8
+node26:8
+node26:8
+node26:8
+node26:8
+node26:8
+
+#fix size=1000
+#P=1 core, size=1000
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 1 ./hw4NbodyMPE_test 1000 1024 data4Nbody.txt
+0.0016748905, 39.1986703876, 0.0000000000
+
+#P=2 core, size=1000
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 2 ./hw4NbodyMPE_test 1000 512 data4Nbody.txt
+0.0014231205, 19.8073101049, 0.0000009537
+
+#P=4 core, size=1000
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 4 ./hw4NbodyMPE_test 1000 256 data4Nbody.txt
+0.0012049675, 9.884779453, 0.0000159740
+
+#P=8 core, size=1000
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 8 ./hw4NbodyMPE_test 1000 128 data4Nbody.txt
+0.0011708736, 5.0252914438, 0.0000348091
+
+#fix P=8 cores
+#size=256
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 8 ./hw4NbodyMPE_test 256 128 data4Nbody.txt
+0.0011148453, 1.3742709161, 0.0000219345
+
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 8 ./hw4NbodyMPE_test 512 128 data4Nbody.txt
+0.0011589527, 2.6837611205, 0.0000190735
+
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 8 ./hw4NbodyMPE_test 1000 128 data4Nbody.txt
+0.0011708736, 5.0252914438, 0.0000348091
+
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 8 ./hw4NbodyMPE_test 2048 128 data4Nbody.txt
+0.0011150837, 9.9160695084, 0.0000190735
+
+[syang@node26 Nbody]$ mpiexec -machinefile syang_NODEFILE -n 8 ./hw4NbodyMPE_test 4096 128 data4Nbody.txt
+0.0011081696, 19.6861290932, 0.0000219345
+
+#ique2, bodies=1024
+#fix iteration
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 1 ./hw4NbodyMPE_test 1000 1024 data4Nbody.txt
+0.0017302036, 39.1930294041, 0.0000009537
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 2 ./hw4NbodyMPE_test 1000 512 data4Nbody.txt
+0.0014319420, 19.7970318795, 0.0000028610
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 4 ./hw4NbodyMPE_test 1000 256 data4Nbody.txt
+0.0011961460, 9.9056386956, 0.0000050068
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 8 ./hw4NbodyMPE_test 1000 128 data4Nbody.txt
+0.0011179447, 5.0613307925, 0.0000269413
+
+#compared to sequential case
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 1 ./hw4NbodyMPE_test 1000 128 data4Nbody.txt
+0.0010230541, 0.718119144, 0.0000000000
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 1 ./hw4NbodyMPE_test 1000 256 data4Nbody.txt
+0.0010669231, 2.528309822, 0.0000000000
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 1 ./hw4NbodyMPE_test 1000 512 data4Nbody.txt
+0.0012910366, 9.851279259, 0.0000000000
+
+
+#fix cores=8
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 8 ./hw4NbodyMPE_test 256 128 data4Nbody.txt
+0.0011851788, 1.3274693491, 0.0000360012
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 8 ./hw4NbodyMPE_test 512 128 data4Nbody.txt
+0.0010919571, 2.6923418054, 0.0000200272
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 8 ./hw4NbodyMPE_test 1024 128 data4Nbody.txt
+0.0011520386, 5.1034402852, 0.0000350475
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 8 ./hw4NbodyMPE_test 2048 128 data4Nbody.txt
+0.0010468960, 9.9911808973, 0.0000250340
+[syang@node26 Nbody]$ mpiexec -machinefile $PBS_NODEFILE -n 8 ./hw4NbodyMPE_test 4096 128 data4Nbody.txt
+0.0010979176, 19.9222993885, 0.0000319481
+
+
+
+
+
