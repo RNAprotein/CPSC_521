@@ -64,8 +64,8 @@ End PBS Prologue Thu Dec 13 01:58:33 PST 2012 1355392713
 ----------------------------------------
 
 [syang@node26 ~]$ cat $PBS_NODEFILE >> mymachinefile
-[syang@node26 ~]$ vi mymachinefile 
-[syang@node26 ~]$ more mymachinefile 
+[syang@node26 ~]$ vi mymachinefile
+[syang@node26 ~]$ more mymachinefile
 node26:8
 node26:8
 node26:8
@@ -101,7 +101,7 @@ node21:8
 
 const float deltaT = 1.0;	//delta t constant
 const double G= 0.0000000000667384;		//gravitational constant
-const int POSITION_DIMENSION = 3;	//position info (x, y, z)
+const int POSITION_DIMENSION = 3;	//position info (x, y, mass)
 
 //main function
 //argv: (rounds, granularity, filename)
@@ -113,9 +113,9 @@ int main(int argc, char *argv[]) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	//exit if the number of processes is not satisfied
-	if(size<2)
+	if(size<1)
 	{
-		printf("Need at least 2 processes!\n");
+		printf("Need at least 1 processes!\n");
 		MPI_Abort(MPI_COMM_WORLD,99);
 	}
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
 
 	int rounds = atoi(argv[1]);
 	int granularity = atoi(argv[2]);
-	char* filename= argv[POSITION_DIMENSION];
+	char* filename= argv[3];
 
 	float T[granularity * POSITION_DIMENSION];
 	int bodies = size * granularity;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
 	int i = 0;
 	int j = 0;
 	int k = 0;
-	double start, end, elapsed;
+
 
 	//find the neighbors
 	int previous = rank - 1;
@@ -145,6 +145,7 @@ int main(int argc, char *argv[]) {
 		previous = size - 1;
 	}
 
+	double startI = MPI_Wtime();
 	//INITIALIZATION
 	if (rank == 0) {
 		//read from input file
@@ -154,24 +155,26 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < bodies * POSITION_DIMENSION; i++) {
 			fscanf(fp, "%f", data+i);
 		}
-		
-		start=MPI_Wtime();
-		printf("....Start to distribute data at= %lf....\n", start);
+
+/*		start=MPI_Wtime();
+		printf("....Start to distribute data at= %lf....\n", start);*/
 		MPI_Send(data + POSITION_DIMENSION * granularity, (bodies - granularity) * POSITION_DIMENSION, MPI_FLOAT, next, 0,
 				MPI_COMM_WORLD);
 	} else if (rank == size - 1) {
 		MPI_Recv(data, granularity * POSITION_DIMENSION, MPI_FLOAT, previous, 0, MPI_COMM_WORLD,
 				&status);
-		end==MPI_Wtime();
-		elapsed=end-start;
-		printf("''''Finish distribute data at= %lf\tElapsed time= %lf''''\n", end, elapsed);
+		//end==MPI_Wtime();
+		//elapsed=end-start;
+		//printf("''''Finish distribute data at= %lf\tElapsed time= %lf''''\n", end, elapsed);
 	} else {
 		MPI_Recv(data, (size - rank) * granularity * POSITION_DIMENSION, MPI_FLOAT, previous, 0,
 				MPI_COMM_WORLD, &status);
 		MPI_Send(data + POSITION_DIMENSION * granularity, (size - rank - 1) * granularity * POSITION_DIMENSION, MPI_FLOAT, next,
 				0, MPI_COMM_WORLD);
 	}
+	double endI = MPI_Wtime();
 
+	double startS = MPI_Wtime();
 	//SIMULATION
 	for (i = 0; i < granularity * POSITION_DIMENSION; i++) { //make a copy
 		T[i] = data[i];
@@ -230,19 +233,21 @@ int main(int argc, char *argv[]) {
 			data[j * POSITION_DIMENSION + 1] = T[j * POSITION_DIMENSION + 1];
 		}
 	}
+	double endS = MPI_Wtime();
 
+	double startT = MPI_Wtime();
 	//TERMINATION
 	if (rank == 0) {
-		start=MPI_Wtime();
-		printf("....Start to gather data at: %lf....\n", start);
+		//start=MPI_Wtime();
+		//printf("....Start to gather data at: %lf....\n", start);
 		for (i = 0; i < size - 1; i++) {
 			MPI_Send(data+i*granularity * POSITION_DIMENSION, granularity * POSITION_DIMENSION, MPI_FLOAT, previous, 1, MPI_COMM_WORLD);
 			MPI_Recv(data+(i+1)*granularity * POSITION_DIMENSION, granularity * POSITION_DIMENSION, MPI_FLOAT, next, 1, MPI_COMM_WORLD,
 					&status);
 		}
-		end==MPI_Wtime();
-		elapsed=end-start;
-		printf("''''Finish distribute data at= %lf\tElapsed time= %lf''''\n", end, elapsed);
+		//end==MPI_Wtime();
+		//elapsed=end-start;
+		//printf("''''Finish distribute data at= %lf\tElapsed time= %lf''''\n", end, elapsed);
 	} else {
 		for (i = 0; i < size - 1; i++) {
 			MPI_Send(data+i*granularity * POSITION_DIMENSION, granularity * POSITION_DIMENSION, MPI_FLOAT, previous, 1, MPI_COMM_WORLD);
@@ -250,15 +255,18 @@ int main(int argc, char *argv[]) {
 					&status);
 		}
 	}
+	double endT = MPI_Wtime();
 
 	//head node prints the results
 	if (rank == 0) {
 		for (i = 0; i < bodies; i++) {
-			printf("%f\t%f\t%f\n", data[i*POSITION_DIMENSION], data[i*POSITION_DIMENSION+1], data[i*POSITION_DIMENSION+2]);
+			//printf("%f\t%f\t%f\n", data[i*POSITION_DIMENSION], data[i*POSITION_DIMENSION+1], data[i*POSITION_DIMENSION+2]);
 		}
 	}
+
+	if (rank == 0)
+	    printf("Time cost for Initialization, Simulation, Termination:%.10f, %.10f, %.10f\n",  endI-startI,   endS- startS,  endT- startT);
 
 	MPI_FINALIZE();
 
 }
-
